@@ -6,6 +6,9 @@ const slider1Schema=new mongoose.Schema({
     },
     url:{
         type:String,  
+    },
+    publicid:{
+        type:String,  
     }
 });
 export default mongoose.model("Slider1",slider1Schema);

@@ -1,5 +1,5 @@
 import express from 'express'
-import { createSlideController, deleteSlideController, getAllSlidesController, getSlidePhotoController, updateSlideController } from '../controllers/createSlideController.js';
+import { createSlideController, deleteSlideController, getAllSlidesController, updateSlideController } from '../controllers/createSlideController.js';
 import formidable from "express-formidable";//USE FOR PHOTO UPLOAD
 import { isAdmin, requireSignIn } from '../middlewares/authMiddleware.js';
 import path from 'path';
@@ -25,9 +25,9 @@ const router=express.Router();
 router.post('/create-slide',upload.single('image'),requireSignIn,isAdmin,createSlideController);
 
 router.get('/get-all-slide',getAllSlidesController);
-router.get('/get-slide-photo/:sid',getSlidePhotoController);
 
-router.post('/update-slide',requireSignIn,isAdmin,formidable(),updateSlideController);
+
+router.post('/update-slide/:_id',upload.single('image'),requireSignIn,isAdmin,updateSlideController);
 
 router.delete('/delete-slide/:sid',requireSignIn,isAdmin,deleteSlideController);
 

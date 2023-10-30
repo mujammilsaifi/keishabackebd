@@ -6,12 +6,18 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
+import cloudinary from 'cloudinary';
+          
+cloudinary.config({ 
+  cloud_name: process.env.ClOUD_NAME, 
+  api_key: process.env.API_KEY, 
+  api_secret:  process.env.API_SECRET 
+});
 // CREATE CATEGORY CONTROLLER
 export const createCategoryController= async (req,res)=>{
     try {
         const {name}=req.body;
-        const url= req.file.filename;
+        
         if(!name){
             return res.status(401).send({message:"Name is Required"});
         }
@@ -22,8 +28,12 @@ export const createCategoryController= async (req,res)=>{
                 message:"Category Already Exisits"
             })
         }
-        const category=new categoryModel({name,slug:slugify(name),url});
-       
+        const result=await cloudinary.v2.uploader.upload(req.file.path);
+        const url= result.secure_url
+        const publicid=result.public_id
+        const filePath = path.join(__dirname, '..', 'routes', 'public', 'Images',`${req.file.filename}`);
+        fs.unlinkSync(filePath);
+        const category=new categoryModel({name,slug:slugify(name),url,publicid});
         await category.save();
         res.status(201).send({
             success:true,
@@ -131,11 +141,10 @@ export const deleteCategoryController=async (req,res)=>{
       
         // Delete the category by id
         const deletedCategory = await categoryModel.findByIdAndDelete(id);
-        const filePath = path.join(__dirname, '..', 'routes', 'public', 'Images',`${deletedCategory.url}`);
-        // fs.unlinkSync(filePath);
       
         if (deletedCategory) {
-          fs.unlinkSync(filePath);
+            const public_id=deletedCategory.publicid
+            await cloudinary.v2.uploader.destroy(public_id);
           res.status(201).send({
             success: true,
             message: "Delete Category Successfully",

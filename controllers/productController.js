@@ -8,21 +8,35 @@ import crypto from 'crypto'
 import axios from "axios";
 import orderModel from "../models/orderModel.js";
 // Define your merchant details
-const merchantId = "PGTESTPAYUAT";
 const saltKey = "099eb0cd-02cf-4e2a-8aca-3e6c6aff0399";
 const saltIndex = 1;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+import cloudinary from 'cloudinary';
+          
+cloudinary.config({ 
+  cloud_name: process.env.ClOUD_NAME, 
+  api_key: process.env.API_KEY, 
+  api_secret:  process.env.API_SECRET 
+});
 
 //CREATE PRODUCT CONTROLLER
 export const createProductController=async (req,res)=>{
     try {
         const { name, description, price,sprice,setting,material,length,width,weight, tag, gemstone, color, category } = req.body;
-        // Create an array to store image objects
-        const images = req.files.map((file) => ({
-          url: file.filename, // You may need to adjust this based on your upload settings
-        }));
+        const images=[]
+        for (const file of req.files) {
+              const result = await cloudinary.v2.uploader.upload(file.path);
+              images.push({
+                url: result.secure_url,
+                publicid: result.public_id,
+            });
+        }
+        for (const file of req.files) {
+            const filePath = path.join(__dirname, '..', 'routes', 'public', 'Images',`${file.filename}`);
+            fs.unlinkSync(filePath);
+        }
         
         
         // Create a new product using the schema
@@ -123,13 +137,11 @@ export const getProductPhotoController=async(req,res)=>{
 export const deleteProductController= async(req,res)=>{
     try {
         const deletedproduct=await productModel.findByIdAndDelete(req.params.pid);
-       deletedproduct?.images.map((img,i)=>{
-            const filePath = path.join(__dirname, '..', 'routes', 'public', 'Images',`${img.url}`);
-            if(filePath){
-                fs.unlinkSync(filePath);
-            }
-        })
-       
+        for (const img of deletedproduct?.images) {
+            const public_id=img.publicid
+        await cloudinary.v2.uploader.destroy(public_id);
+      }
+
         res.status(200).send({
             success:true,
             message:"Product Deleted Successfully",            
@@ -157,7 +169,7 @@ export const updateProductController=async (req,res)=>{
         updateProduct?.images.map((img,i)=>{
              const filePath = path.join(__dirname, '..', 'routes', 'public', 'Images',`${img.url}`);
              if(filePath){
-                 fs.unlinkSync(filePath);
+                fs.unlinkSync(filePath);
              }
          })
         const products=await productModel.findByIdAndUpdate(req.params.pid,{

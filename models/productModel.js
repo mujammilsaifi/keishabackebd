@@ -51,6 +51,9 @@ const productModel=new mongoose.Schema({
         {
           url:{
             type: String,
+          },
+          publicid:{
+            type: String,
           }
           
         },

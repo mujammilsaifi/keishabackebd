@@ -12,6 +12,9 @@ const categorySchema=new mongoose.Schema({
     },
     url:{
         type:String,  
+    },
+    publicid:{
+        type:String,  
     }
 });
 export default mongoose.model("Category",categorySchema);
