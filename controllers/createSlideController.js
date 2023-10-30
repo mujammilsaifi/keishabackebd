@@ -19,14 +19,14 @@ cloudinary.config({
 // CREATE SLIDER CONTROLLER
 export const createSlideController = async (req, res) => {
   try {
-    const {name}=req.body;
-    const result=await cloudinary.v2.uploader.upload(req.file.path);
-    const url= result.secure_url
-    const publicid=result.public_id
-    const slide=new slider1Model({title:name,slug:slugify(name),url,publicid});
-    const filePath = path.join(__dirname, '..', 'routes', 'public', 'Images',`${req.file.filename}`);
-    fs.unlinkSync(filePath);
-    await slide.save();
+      const {name}=req.body;
+      const result=await cloudinary.v2.uploader.upload(req.file.path);
+      const url= result.secure_url
+      const publicid=result.public_id
+      const slide=new slider1Model({title:name,slug:slugify(name),url,publicid});
+      const filePath = path.join(__dirname, '..', 'routes', 'public', 'Images',`${req.file.filename}`);
+      fs.unlinkSync(filePath);
+      await slide.save();
     res.status(201).send({
         success:true,
         message:"New Slide Created Successfully",
